@@ -1,5 +1,4 @@
 import json
-import requests
 
 from flask import Flask, jsonify
 from flaskext.mongoalchemy import MongoAlchemy
@@ -11,20 +10,16 @@ app = Flask(__name__)
 app.config['MONGOALCHEMY_DATABASE'] = 'nasadata'
 db = MongoAlchemy(app)
 
-import api.parsers.datanasa
+# These imports must be below the db definition
+from api.parsers import datanasa
+from api.parsers.datanasa import Dataset
 
-
-class Dataset(db.Document):
-    """ Represents a dataset,
-    we could split this out to hold all the actual data,
-    slug, url, title, etc
-    """
-    remote_id = db.IntField()
-    data = db.StringField()
+# FIXME: Need to call an 'update' function which loops and gets each dataset
+datanasa.get_dataset(619)
 
 @app.route('/', methods=['GET'])
 def index():
-    datasets = Dataset.query.filter(Dataset.remote_id>0)
+    datasets = datanasa.Dataset.query.all()
     response = []
     for dataset in datasets:
         print "x"
@@ -36,9 +31,14 @@ def index():
 def get_recent_datasets():
     pass
 
-@app.route('/get_dataset')
-def get_dataset():
-    pass
+@app.route('/get_dataset/<identifier>')
+def get_dataset(identifier):
+    try:
+        pk = int(identifier)
+        response = Dataset.query.get_by_remote_id(pk)
+    except ValueError:
+        response = Dataset.query.get_by_slug(identifier)
+    return jsonify(response.data)
 
 @app.route('/get_date_datasets')
 def get_date_datasets():
@@ -67,9 +67,4 @@ def get_category_index():
 @app.route('/get_tag_index')
 def get_tag_index():
     pass
-
-if __name__ == '__main__':
-    app.debug = True
-    app.port = 8000
-    app.run()
 
