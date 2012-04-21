@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, Response
 from flaskext.mongoalchemy import MongoAlchemy
 
 
@@ -29,7 +29,9 @@ def index():
 
 @app.route('/get_recent_datasets')
 def get_recent_datasets():
-    pass
+    count = request.args.get('count', 10) # default to 10 results
+    results = [dataset.data for dataset in Dataset.query.filter_by_recentness(count)]
+    return Response(json.dumps(results), mimetype='application/json')
 
 @app.route('/get_dataset/<identifier>')
 def get_dataset(identifier):

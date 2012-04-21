@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from flaskext.mongoalchemy import BaseQuery
 import requests
@@ -16,6 +17,10 @@ class JSONField(db.StringField):
 
 
 class DatasetQuery(BaseQuery):
+    def filter_by_recentness(self, count):
+        # FIXME: limit doesn't limit here
+        return self.descending(self.type.date_posted).limit(count)
+
     def get_by_remote_id(self, pk):
         return self.filter(self.type.remote_id==pk).first()
 
@@ -30,6 +35,7 @@ class Dataset(db.Document):
     """
     remote_id = db.IntField()
     slug = db.StringField()
+    date_posted = db.DateTimeField()
     data = JSONField()
 
     query_class = DatasetQuery
@@ -37,7 +43,9 @@ class Dataset(db.Document):
 
 def get_dataset(id):
     response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
-    slug = json.loads(response.text).get('post').get('slug')
-    dataset = Dataset(remote_id = id, slug=slug, data=response.text)
+    data = json.loads(response.text)
+    slug = data.get('post').get('slug')
+    date = datetime.strptime(data.get('post').get('date'), '%Y-%m-%d %H:%M:%S')
+    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, data=response.text)
     dataset.save()
 
