@@ -1,7 +1,7 @@
 import requests
 import json 
 
-from flask import Flask
+from flask import Flask, jsonify
 from flaskext.mongoalchemy import MongoAlchemy
 
 ENDPOINT = 'http://data.nasa.gov/api/'
@@ -20,12 +20,18 @@ class Dataset(db.Document):
 
 @app.route('/', methods=['GET'])
 def index():
+    datasets = Dataset.query.all()
+    response = []
+    for dataset in datasets:
+        print "x"
+        response.append(dataset.data)
+    return jsonify(response)
 
-    response = requests.get(ENDPOINT + 'get_dataset?id=354')
+def get_dataset(id):
+    response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
     dataset_data = json.loads(response.text)
     dataset = Dataset(remote_id = dataset_data.id, data=response.text)
     dataset.save()
-    
     
 
 if __name__ == '__main__':
