@@ -1,2 +1,3 @@
 Flask==0.8
 requests==0.11.1
+Flask-MongoAlchemy==0.5.3
