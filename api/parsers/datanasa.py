@@ -1,7 +1,10 @@
 import json
 from flaskext.mongoalchemy import MongoAlchemy
+import requests
+
 from api import app
 from api import db
+
 
 ENDPOINT = 'http://data.nasa.gov/api/'
 

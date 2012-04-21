@@ -19,7 +19,7 @@ datanasa.get_dataset(601)
 
 @app.route('/', methods=['GET'])
 def index():
-    datasets = Dataset.query.filter(Dataset.remote_id>0)
+    datasets = datanasa.Dataset.query.all()
     response = []
     for dataset in datasets:
         print "x"
