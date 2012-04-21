@@ -63,8 +63,3 @@ def get_category_index():
 def get_tag_index():
     pass
 
-if __name__ == '__main__':
-    app.debug = True
-    app.port = 8000
-    app.run()
-
