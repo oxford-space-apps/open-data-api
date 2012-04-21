@@ -11,16 +11,11 @@ app = Flask(__name__)
 app.config['MONGOALCHEMY_DATABASE'] = 'nasadata'
 db = MongoAlchemy(app)
 
-import api.parsers.datanasa
+# These imports must be below the db definition
+from api.parsers import datanasa
 
-
-class Dataset(db.Document):
-    """ Represents a dataset,
-    we could split this out to hold all the actual data,
-    slug, url, title, etc
-    """
-    remote_id = db.IntField()
-    data = db.StringField()
+# FIXME: Need to call an 'update' function which loops and gets each dataset
+datanasa.get_dataset(601)
 
 @app.route('/', methods=['GET'])
 def index():
