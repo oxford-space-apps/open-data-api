@@ -13,6 +13,7 @@ db = MongoAlchemy(app)
 # These imports must be below the db definition
 from api.parsers import datanasa
 from api.parsers.datanasa import Dataset
+from api.parsers import grin
 
 # FIXME: Need to call an 'update' function which loops and gets each dataset
 datanasa.get_dataset(619)
@@ -68,3 +69,7 @@ def get_category_index():
 def get_tag_index():
     pass
 
+@app.route('/grin/add')
+def test_all_the_data():
+    grin.get_pages()
+    return 'Grin data added to database.' 
