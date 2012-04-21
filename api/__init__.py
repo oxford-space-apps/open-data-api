@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, Response
 from flaskext.mongoalchemy import MongoAlchemy
 
 
@@ -18,6 +18,9 @@ from api.parsers import grin
 # FIXME: Need to call an 'update' function which loops and gets each dataset
 datanasa.get_dataset(619)
 
+def hacky_jsonify_list(data_list):
+    return Response(json.dumps(data_list), mimetype='application')
+
 @app.route('/', methods=['GET'])
 def index():
     datasets = datanasa.Dataset.query.all()
@@ -30,7 +33,9 @@ def index():
 
 @app.route('/get_recent_datasets')
 def get_recent_datasets():
-    pass
+    count = request.args.get('count', 10) # default to 10 results
+    results = [dataset.data for dataset in Dataset.query.filter_by_recentness(count)]
+    return hacky_jsonify_list(results)
 
 @app.route('/get_dataset/<identifier>')
 def get_dataset(identifier):
@@ -43,7 +48,14 @@ def get_dataset(identifier):
 
 @app.route('/get_date_datasets')
 def get_date_datasets():
-    pass
+    date = request.args.get('date') # required
+    if not date:
+        return Exception
+
+    count = request.args.get('count', 10) # default to 10
+    query = Dataset.query.filter_by_date(date).limit(count)
+    results = [dataset.data for dataset in query]
+    return hacky_jsonify_list(results)
 
 @app.route('/get_category_datasets')
 def get_category_datasets():
