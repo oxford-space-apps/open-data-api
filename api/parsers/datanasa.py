@@ -19,5 +19,5 @@ class Dataset(db.Document):
 def get_dataset(id):
     response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
     dataset_data = json.loads(response.text)
-    dataset = Dataset(remote_id = dataset_data.id, data=response.text)
+    dataset = Dataset(remote_id = id, data=response.text)
     dataset.save()
