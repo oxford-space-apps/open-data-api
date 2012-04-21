@@ -35,10 +35,10 @@ def get_recent_datasets():
 def get_dataset(identifier):
     try:
         pk = int(identifier)
-        response = Dataset.query.get_by_remote_id(pk).data
+        response = Dataset.query.get_by_remote_id(pk)
     except ValueError:
-        response = Dataset.query.get_by_slug(identifier).data
-    return response
+        response = Dataset.query.get_by_slug(identifier)
+    return jsonify(response.data)
 
 @app.route('/get_date_datasets')
 def get_date_datasets():

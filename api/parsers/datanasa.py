@@ -9,6 +9,12 @@ from api import db
 ENDPOINT = 'http://data.nasa.gov/api/'
 
 
+class JSONField(db.StringField):
+    def unwrap(self, value, *args, **kwargs):
+        """Pass the json field around as a dictionary internally"""
+        return json.loads(value)
+
+
 class DatasetQuery(BaseQuery):
     def get_by_remote_id(self, pk):
         return self.filter(self.type.remote_id==pk).first()
@@ -24,7 +30,7 @@ class Dataset(db.Document):
     """
     remote_id = db.IntField()
     slug = db.StringField()
-    data = db.StringField()
+    data = JSONField()
 
     query_class = DatasetQuery
 
