@@ -1,7 +1,7 @@
 import json
 import requests
 
-from flask import Flask
+from flask import Flask, jsonify
 from flaskext.mongoalchemy import MongoAlchemy
 
 
@@ -22,7 +22,15 @@ class Dataset(db.Document):
 
 @app.route('/', methods=['GET'])
 def index():
-    response = requests.get(ENDPOINT + 'get_dataset?id=354')
+    datasets = Dataset.query.all()
+    response = []
+    for dataset in datasets:
+        print "x"
+        response.append(dataset.data)
+    return jsonify(response)
+
+def get_dataset(id):
+    response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
     dataset_data = json.loads(response.text)
     dataset = Dataset(remote_id = dataset_data.id, data=response.text)
     dataset.save()
