@@ -1,5 +1,8 @@
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import json
+import re
+
 from flaskext.mongoalchemy import BaseQuery
 import requests
 
@@ -17,6 +20,32 @@ class JSONField(db.StringField):
 
 
 class DatasetQuery(BaseQuery):
+    def filter_by_date(self, date):
+        """ Filter datasets by dates
+        Acceptable formats:
+            * YYYY
+            * YYYY-MM
+            * YYYY-MM-DD
+        Non-numeric characters are stripped making these also valid:
+            * YYYYMMDD
+            * YYYY/MM/DD
+        """
+        non_numeric = re.compile(r'[^\d]+').sub('', date)
+        formats = {
+            'year': ('%Y', relativedelta(years=+1)),
+            'month': ('%Y%m', relativedelta(months=+1)),
+            'day': ('%Y%m%d', relativedelta(days=+1)),
+        }
+        for key, info in formats.iteritems():
+            try:
+                parsed_date = datetime.strptime(non_numeric, info[0])
+                diff = parsed_date + formats[key][1]
+                break
+            except ValueError:
+                continue
+
+        return self.filter(Dataset.date_posted >= parsed_date).filter(Dataset.date_posted <= diff)
+
     def filter_by_recentness(self, count):
         # FIXME: limit doesn't limit here
         return self.descending(self.type.date_posted).limit(count)
