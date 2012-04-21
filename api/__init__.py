@@ -11,6 +11,8 @@ app = Flask(__name__)
 app.config['MONGOALCHEMY_DATABASE'] = 'nasadata'
 db = MongoAlchemy(app)
 
+import api.parsers.datanasa
+
 
 class Dataset(db.Document):
     """ Represents a dataset,
@@ -22,18 +24,13 @@ class Dataset(db.Document):
 
 @app.route('/', methods=['GET'])
 def index():
-    datasets = Dataset.query.all()
+    datasets = Dataset.query.filter(Dataset.remote_id>0)
     response = []
     for dataset in datasets:
         print "x"
         response.append(dataset.data)
     return jsonify(response)
 
-def get_dataset(id):
-    response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
-    dataset_data = json.loads(response.text)
-    dataset = Dataset(remote_id = dataset_data.id, data=response.text)
-    dataset.save()
 
 @app.route('/get_recent_datasets')
 def get_recent_datasets():
