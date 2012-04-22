@@ -1,4 +1,5 @@
 Flask==0.8
 Flask-MongoAlchemy==0.5.3
+lxml==2.3.4
 python-dateutil==2.1
 requests==0.11.1

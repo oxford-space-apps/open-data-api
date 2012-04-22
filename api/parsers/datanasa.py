@@ -6,7 +6,6 @@ import re
 from flaskext.mongoalchemy import BaseQuery
 import requests
 
-from api import app
 from api import db
 
 
@@ -65,16 +64,32 @@ class Dataset(db.Document):
     remote_id = db.IntField()
     slug = db.StringField()
     date_posted = db.DateTimeField()
+    tags = db.SetField(db.ObjectIdField())
     data = JSONField()
 
     query_class = DatasetQuery
 
 
+class Tag(db.Document):
+    """Represents a Tag"""
+    # post_count: 10,
+    description = db.StringField()
+    remote_id = db.IntField()
+    slug = db.StringField()
+    title = db.StringField()
+
 def get_dataset(id):
     response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
     data = json.loads(response.text)
-    slug = data.get('post').get('slug')
-    date = datetime.strptime(data.get('post').get('date'), '%Y-%m-%d %H:%M:%S')
-    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, data=response.text)
+    post = data.get('post')
+    slug = post.get('slug')
+    date = datetime.strptime(post.get('date'), '%Y-%m-%d %H:%M:%S')
+    tags = set()
+    for tag in post.get('tags'):
+        new = Tag(description=tag['description'], remote_id=tag['id'],
+                  slug=tag['slug'], title=tag['title'])
+        new.save()
+        tags.add(new.mongo_id)
+    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, tags=tags, data=response.text)
     dataset.save()
 
