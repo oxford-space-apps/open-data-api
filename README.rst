@@ -1,10 +1,29 @@
-HOWTO
+NASA Open Data API
+==================
+
+Setup
 -----
 
-1. Clone project
-2. Start a python virtualenv:
-  `virtualenv .`
-3. Activate virtual enviroment:
-  `source bin/activate`
-4. Install requirements:
-  `pip install -r requirements.txt`
+Clone project
+~~~~~~~~~~~~~
+
+    git clone git@github.com:oxford-space-apps/open-data-api
+
+
+Install Requirements
+~~~~~~~~~~~~~~~~~~~~
+
+    pip install -r requirements.txt
+
+
+Run the Server
+~~~~~~~~~~~~~~
+
+    python runserver.py
+
+
+View in your Browser
+~~~~~~~~~~~~~~~~~~~~
+
+    http://localhost:5000
+

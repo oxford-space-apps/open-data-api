@@ -55,19 +55,22 @@ class DatasetQuery(BaseQuery):
     def get_by_slug(self, slug):
         return self.filter(self.type.slug==slug).first()
 
+    def get_by_category_id(self, category_id, count):
+        return self.in_(self.type.categories.id, int(category_id)).limit(count)
 
-class Dataset(db.Document):
-    """ Represents a dataset,
-    we could split this out to hold all the actual data,
-    slug, url, title, etc
-    """
-    remote_id = db.IntField()
+    def get_by_category_slug(self, slug, count):
+        return self.in_(self.type.categories.slug, slug).limit(count)
+
+    def get_by_tag_id(self, tag_id):
+        return self.in_(self.type.tags.remote_id, int(tag_id))
+
+    def get_by_slug_slug(self, slug):
+        return self.in_(self.type.tags.slug, slug)
+
+
+class Category(db.Document):
+    id = db.IntField()
     slug = db.StringField()
-    date_posted = db.DateTimeField()
-    tags = db.SetField(db.ObjectIdField())
-    data = JSONField()
-
-    query_class = DatasetQuery
 
 
 class Tag(db.Document):
@@ -78,18 +81,43 @@ class Tag(db.Document):
     slug = db.StringField()
     title = db.StringField()
 
+
+class Dataset(db.Document):
+    """ Represents a dataset,
+    we could split this out to hold all the actual data,
+    slug, url, title, etc
+    """
+    remote_id = db.IntField()
+    slug = db.StringField()
+    date_posted = db.DateTimeField()
+    categories  = db.SetField(db.DocumentField(Category))
+    tags = db.SetField(db.DocumentField(Tag))
+    data = JSONField()
+
+    query_class = DatasetQuery
+
+
 def get_dataset(id):
     response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
     data = json.loads(response.text)
     post = data.get('post')
     slug = post.get('slug')
     date = datetime.strptime(post.get('date'), '%Y-%m-%d %H:%M:%S')
+
     tags = set()
     for tag in post.get('tags'):
         new = Tag(description=tag['description'], remote_id=tag['id'],
                   slug=tag['slug'], title=tag['title'])
         new.save()
-        tags.add(new.mongo_id)
-    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, tags=tags, data=response.text)
+        tags.add(new)
+
+    categories = post.get('categories')
+    category_objects = set()
+    for category in categories:
+        cat = Category(id=category['id'], slug=category['slug'])
+        cat.save()
+        category_objects.add(cat)
+
+    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, data=response.text, categories=category_objects, tags=tags)
     dataset.save()
 
