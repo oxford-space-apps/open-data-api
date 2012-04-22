@@ -6,7 +6,6 @@ import re
 from flaskext.mongoalchemy import BaseQuery
 import requests
 
-from api import app
 from api import db
 
 
@@ -75,23 +74,42 @@ class Dataset(db.Document):
     slug = db.StringField()
     date_posted = db.DateTimeField()
     categories  = db.SetField(db.DocumentField(Category))
+    tags = db.SetField(db.ObjectIdField())
     data = JSONField()
     
 
     query_class = DatasetQuery
 
 
+class Tag(db.Document):
+    """Represents a Tag"""
+    # post_count: 10,
+    description = db.StringField()
+    remote_id = db.IntField()
+    slug = db.StringField()
+    title = db.StringField()
+
 def get_dataset(id):
     response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
     data = json.loads(response.text)
-    slug = data.get('post').get('slug')
-    date = datetime.strptime(data.get('post').get('date'), '%Y-%m-%d %H:%M:%S')
-    categories = data.get('post').get('categories')
+    post = data.get('post')
+    slug = post.get('slug')
+    date = datetime.strptime(post.get('date'), '%Y-%m-%d %H:%M:%S')
+
+    tags = set()
+    for tag in post.get('tags'):
+        new = Tag(description=tag['description'], remote_id=tag['id'],
+                  slug=tag['slug'], title=tag['title'])
+        new.save()
+        tags.add(new.mongo_id)
+
+    categories = post.get('categories')
     category_objects = set()
     for category in categories:
         cat = Category(id=category['id'], slug=category['slug'])
         cat.save()
         category_objects.add(cat)
-    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, data=response.text, categories=category_objects)
+
+    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, data=response.text, categories=category_objects, tags=tags)
     dataset.save()
 
