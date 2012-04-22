@@ -1,5 +1,6 @@
 from flaskext.mongoalchemy import BaseQuery
 import requests
+import json
 
 from api import app
 from api import db
@@ -10,13 +11,94 @@ import lxml.html
 import urllib
 import sys
 
+class JSONField(db.StringField):
+    def unwrap(self, value, *args, **kwargs):
+        """Pass the json field around as a dictionary internally"""
+        return json.loads(value)
+
 class DatasetQuery(BaseQuery):
-    def get_by_remote_id(self, pk):
-        return self.filter(self.type.remote_id==pk).first()
+    def filter_by_center_code(self, center_code):
+	results = self.filter(Grin.center_code == center_code)
+	list1 = []
+	for grin in results:
+		dictionary = dict(internal_id = str(grin.mongo_id), 
+				image_reference = grin.image_reference, 
+				grin_id = grin.grin_id, 
+				data_url = grin.data_url, 
+				image_creator = grin.image_creator, 
+				original_source = grin.original_source, 
+				date_time = grin.date_stamp, 
+				center_code = grin.center_code, 
+				center_name = grin.center_name, 
+				short_desc = grin.short_description, 
+				full_desc = grin.full_description, 
+				keywords = grin.keyword_list, 
+				subjects = grin.subject_list, 
+				thumbnail_url = grin.thumbnail_url, 
+				thumbnail_type = grin.thumbnail_type,
+				thumbnail_height = grin.thumbnail_height, 
+				thumbnail_width = grin.thumbnail_width, 
+				thumbnail_size = grin.thumbnail_size, 
+				small_url = grin.small_url, 
+				small_type = grin.small_type, 
+				small_height = grin.small_height, 
+				small_width = grin.small_width, 
+				small_size = grin.small_size, 
+				medium_url = grin.medium_url, 
+				medium_type = grin.medium_type, 
+				medium_height = grin.medium_height, 
+				medium_width = grin.medium_width, 
+				medium_size = grin.medium_size, 
+				large_url = grin.large_url, 
+				large_type = grin.large_type, 
+				large_height = grin.large_height, 
+				large_width = grin.large_width, 
+				large_size = grin.large_size)
+		list1.append(dictionary)
 
-    def get_by_slug(self, slug):
-        return self.filter(self.type.slug==slug).first()
+	return list1
 
+    def filter_by_grin_id(self, grin_id):
+	results = self.filter(Grin.grin_id == grin_id)
+	list1 = []
+	for grin in results:
+                dictionary = dict(internal_id = str(grin.mongo_id),
+                                image_reference = grin.image_reference,
+                                grin_id = grin.grin_id,
+                                data_url = grin.data_url,
+                                image_creator = grin.image_creator,
+                                original_source = grin.original_source,
+                                date_time = grin.date_stamp,
+                                center_code = grin.center_code,
+                                center_name = grin.center_name,
+                                short_desc = grin.short_description,
+                                full_desc = grin.full_description,
+                                keywords = grin.keyword_list,
+                                subjects = grin.subject_list,
+                                thumbnail_url = grin.thumbnail_url,
+                                thumbnail_type = grin.thumbnail_type,
+                                thumbnail_height = grin.thumbnail_height,
+                                thumbnail_width = grin.thumbnail_width,
+                                thumbnail_size = grin.thumbnail_size,
+                                small_url = grin.small_url,
+                                small_type = grin.small_type,
+                                small_height = grin.small_height,
+                                small_width = grin.small_width,
+                                small_size = grin.small_size,
+                                medium_url = grin.medium_url,
+                                medium_type = grin.medium_type,
+                                medium_height = grin.medium_height,
+                                medium_width = grin.medium_width,
+                                medium_size = grin.medium_size,
+                                large_url = grin.large_url,
+                                large_type = grin.large_type, 
+                                large_height = grin.large_height, 
+                                large_width = grin.large_width, 
+                                large_size = grin.large_size)
+
+		list1.append(dictionary)
+
+	return list1
 
 class Grin(db.Document):
     data_url = db.StringField()
@@ -51,6 +133,10 @@ class Grin(db.Document):
     large_width = db.StringField()
     large_height = db.StringField()
     large_size = db.StringField()
+    data = JSONField()
+
+    query_class = DatasetQuery
+
 
 def find_all(string, occurrence):
      found = 0
