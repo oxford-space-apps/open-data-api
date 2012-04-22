@@ -56,6 +56,15 @@ class DatasetQuery(BaseQuery):
     def get_by_slug(self, slug):
         return self.filter(self.type.slug==slug).first()
 
+    def get_by_category_id(self, category_id, count):
+        return self.in_(self.type.categories.id, int(category_id)).limit(count)
+
+    def get_by_category_slug(self, slug, count):
+        return self.in_(self.type.categories.slug, slug).limit(count)
+
+class Category(db.Document):
+    id = db.IntField()
+    slug = db.StringField()
 
 class Dataset(db.Document):
     """ Represents a dataset,
@@ -65,7 +74,9 @@ class Dataset(db.Document):
     remote_id = db.IntField()
     slug = db.StringField()
     date_posted = db.DateTimeField()
+    categories  = db.SetField(db.DocumentField(Category))
     data = JSONField()
+    
 
     query_class = DatasetQuery
 
@@ -75,6 +86,12 @@ def get_dataset(id):
     data = json.loads(response.text)
     slug = data.get('post').get('slug')
     date = datetime.strptime(data.get('post').get('date'), '%Y-%m-%d %H:%M:%S')
-    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, data=response.text)
+    categories = data.get('post').get('categories')
+    category_objects = set()
+    for category in categories:
+        cat = Category(id=category['id'], slug=category['slug'])
+        cat.save()
+        category_objects.add(cat)
+    dataset = Dataset(remote_id = id, slug=slug, date_posted=date, data=response.text, categories=category_objects)
     dataset.save()
 
