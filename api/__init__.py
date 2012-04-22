@@ -14,6 +14,7 @@ db = MongoAlchemy(app)
 from api.parsers import datanasa
 from api.parsers.datanasa import Dataset
 from api.parsers import grin
+from api.parsers import kepler
 
 # FIXME: Need to call an 'update' function which loops and gets each dataset
 datanasa.get_dataset(619)
@@ -82,6 +83,11 @@ def get_tag_index():
     pass
 
 @app.route('/grin/add')
-def test_all_the_data():
+def get_grin_data():
     grin.get_pages()
     return 'Grin data added to database.' 
+
+@app.route('/kepler/add')
+def get_kepler_data():
+    kepler.get_candidates();
+    return 'Kepler complete.'
