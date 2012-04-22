@@ -12,7 +12,7 @@ db = MongoAlchemy(app)
 
 # These imports must be below the db definition
 from api.parsers import datanasa
-from api.parsers.datanasa import Dataset
+from api.parsers.datanasa import Dataset, Tag
 from api.parsers import grin
 from api.parsers import kepler
 
@@ -77,7 +77,20 @@ def get_category_datasets():
 
 @app.route('/get_tag_datasets')
 def get_tag_datasets():
-    pass
+    pk = request.args.get('id')
+    slugs = request.args.getlist('slug')
+    if not (pk or slugs):
+        return Exception
+
+    count = request.args.get('count', 10) # default to 10
+    if pk:
+        results = Dataset.query.get_by_tag_id(pk)
+    else:
+        slug = slugs[0]
+        # need to loop the slugs here and combine the resulting querysets
+        results = Dataset.query.get_by_slug(slug)
+    response = [dataset.data for dataset in results.limit(count)]
+    return hacky_jsonify_list(response)
 
 @app.route('/get_search_results')
 def get_search_results():

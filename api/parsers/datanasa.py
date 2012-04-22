@@ -61,9 +61,26 @@ class DatasetQuery(BaseQuery):
     def get_by_category_slug(self, slug, count):
         return self.in_(self.type.categories.slug, slug).limit(count)
 
+    def get_by_tag_id(self, tag_id):
+        return self.in_(self.type.tags.remote_id, int(tag_id))
+
+    def get_by_slug_slug(self, slug):
+        return self.in_(self.type.tags.slug, slug)
+
+
 class Category(db.Document):
     id = db.IntField()
     slug = db.StringField()
+
+
+class Tag(db.Document):
+    """Represents a Tag"""
+    # post_count: 10,
+    description = db.StringField()
+    remote_id = db.IntField()
+    slug = db.StringField()
+    title = db.StringField()
+
 
 class Dataset(db.Document):
     """ Represents a dataset,
@@ -74,20 +91,11 @@ class Dataset(db.Document):
     slug = db.StringField()
     date_posted = db.DateTimeField()
     categories  = db.SetField(db.DocumentField(Category))
-    tags = db.SetField(db.ObjectIdField())
+    tags = db.SetField(db.DocumentField(Tag))
     data = JSONField()
-    
 
     query_class = DatasetQuery
 
-
-class Tag(db.Document):
-    """Represents a Tag"""
-    # post_count: 10,
-    description = db.StringField()
-    remote_id = db.IntField()
-    slug = db.StringField()
-    title = db.StringField()
 
 def get_dataset(id):
     response = requests.get(ENDPOINT + 'get_dataset?id=%s' % id)
@@ -101,7 +109,7 @@ def get_dataset(id):
         new = Tag(description=tag['description'], remote_id=tag['id'],
                   slug=tag['slug'], title=tag['title'])
         new.save()
-        tags.add(new.mongo_id)
+        tags.add(new)
 
     categories = post.get('categories')
     category_objects = set()
