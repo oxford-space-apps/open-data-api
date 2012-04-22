@@ -20,6 +20,8 @@ from api.parsers import kepler
 datanasa.get_dataset(619)
 
 def hacky_jsonify_list(data_list):
+    # this can be replaced by providing a serialization methods on the Dataset
+    # and the DatasetQuery objects
     return Response(json.dumps(data_list), mimetype='application/json')
 
 @app.route('/', methods=['GET'])
