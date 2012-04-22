@@ -99,9 +99,9 @@ def get_grin_center():
 
     return hacky_jsonify_list(response)
 
-@app.route('/grin/get_by_grinid')
+@app.route('/grin/get_by_remote_id')
 def get_grin_grinid():
-    grin_id = request.args.get('grinid') # required
+    grin_id = request.args.get('id') # required
 
     if not grin_id:
 	return Exception
@@ -109,3 +109,15 @@ def get_grin_grinid():
     response = Grin.query.filter_by_grin_id(grin_id)
 
     return hacky_jsonify_list(response)
+
+@app.route('/grin/get_by_description')
+def get_grin_description():
+    desc = request.args.get('description') # required
+
+    if not desc:
+	return Exception
+
+    response = Grin.query.filter_by_description(desc)
+
+    return hacky_jsonify_list(response)
+
