@@ -14,6 +14,7 @@ db = MongoAlchemy(app)
 from api.parsers import datanasa
 from api.parsers.datanasa import Dataset, Tag
 from api.parsers import grin
+from api.parsers.grin import Grin
 from api.parsers import kepler
 
 # FIXME: Need to call an 'update' function which loops and gets each dataset
@@ -115,7 +116,36 @@ def get_grin_data():
     grin.get_pages()
     return 'Grin data added to database.' 
 
-@app.route('/kepler/add')
-def get_kepler_data():
-    kepler.get_candidates();
-    return 'Kepler complete.'
+@app.route('/grin/get_by_centre')
+def get_grin_center():
+    centre = request.args.get('centre') # required
+
+    if not centre:
+	return Exception
+
+    response = Grin.query.filter_by_center_code(centre)
+
+    return hacky_jsonify_list(response)
+
+@app.route('/grin/get_by_remote_id')
+def get_grin_grinid():
+    grin_id = request.args.get('id') # required
+
+    if not grin_id:
+	return Exception
+
+    response = Grin.query.filter_by_grin_id(grin_id)
+
+    return hacky_jsonify_list(response)
+
+@app.route('/grin/get_by_description')
+def get_grin_description():
+    desc = request.args.get('description') # required
+
+    if not desc:
+	return Exception
+
+    response = Grin.query.filter_by_description(desc)
+
+    return hacky_jsonify_list(response)
+
